@@ -1,2 +1,2 @@
 # gr-analysis
-Tool to analyze the quality of long distance (GR) hiking trails in Belgium
+This repository contains a small tool that analyzes the quality of GR long distance hiking trails in Belgium. It uses topography information obtained from Open Street Maps through the OSMNX library and performs data analysis. It mainly focused on determining which trail sections are paved vs. unpaved, and how those are distributed geographically.
