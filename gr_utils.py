@@ -1,29 +1,8 @@
 import sys
 import re
+import numpy as np
+import pandas as pd
 from csv import writer
-
-# def testing(x,y):
-#     return x+y
-
-# # This function computes the distances between point-node1 and point-node2
-# def get_distances(node1,node2,point):
-#     R = 6371.8 # Mean earth radius [km]
-#     # Converting degrees to radians
-#     lon1 = np.radians(node1[1])
-#     lat1 = np.radians(node1[0])
-#     lon2 = np.radians(node2[1])
-#     lat2 = np.radians(node2[0])
-#     lat  = np.radians(point[0])
-#     lon  = np.radians(point[1])
-#     # Computing distances between point-node1 and point-node2
-#     r1 = [R*np.cos(lat1)*np.cos(lon1), R*np.cos(lat1)*np.sin(lon1), R*np.sin(lat1)]
-#     r2 = [R*np.cos(lat2)*np.cos(lon2), R*np.cos(lat2)*np.sin(lon2), R*np.sin(lat2)]
-#     r  = [R*np.cos(lat)*np.cos(lon),   R*np.cos(lat)*np.sin(lon),   R*np.sin(lat)]
-#     dr1 = [r1[0]-r[0], r1[1]-r[1], r1[2]-r[2]]
-#     dr2 = [r2[0]-r[0], r2[1]-r[1], r2[2]-r[2]]
-#     d1 = np.sqrt(dr1[0]*dr1[0] + dr1[1]*dr1[1] + dr1[2]*dr1[2])
-#     d2 = np.sqrt(dr2[0]*dr2[0] + dr2[1]*dr2[1] + dr2[2]*dr2[2])
-#     return d1,d2
 
 # This function returns a list with the [lat, lon] of each point within an OSM edge
 def edge_to_coords(network_edges,edge_id):
@@ -61,3 +40,41 @@ def process_gpx(filename_in, filename_out):
         csv_writer.writerow(['latitude','longitude','elevation'])
         for row in dat:
             csv_writer.writerow(row)
+            
+def write_batch(filename, segment_list):
+    
+    print('   Writing outputs to file')
+    with open(filename, 'w') as file:
+        csv_writer = writer(file)
+        headers = ['x0','y0','x1','y1','d_cart','d_osm','highway','surface','tracktype']
+        csv_writer.writerow(headers)
+        for segment in segment_list:
+            csv_writer.writerow(segment)
+            
+def merge_roads(trailname, trail, points_per_batch):
+    
+    n_batch = int(np.ceil(trail.shape[0]/points_per_batch)) # Number of batches to be run
+    
+    # Load the first batch
+    filename = f'cache/{trailname}_0to{points_per_batch}.csv'
+    data = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+    
+    # Load and merge the remaining batches
+    for b in range(1,n_batch): # b is the batch counter
+        n1 = b*points_per_batch # First point
+        n2 = min(n1 + points_per_batch, len(trail)) # Last point
+        filename = f'cache/{trailname}_{n1}to{n2}.csv'
+        data_new = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+        data = pd.concat([data,data_new],ignore_index=True)
+        
+    return data
+
+def write_roads(trailname, data_roads):
+    
+    filename = f'cache/{trailname}_roads.csv'
+    data_roads.to_csv(filename)
+
+def read_roads(trailname):
+    
+    filename = f'cache/{trailname}_roads.csv'
+    return pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})

@@ -153,15 +153,13 @@ def get_segments(network, node_id_start, node_id_end):
 # Main map matching algorithm, may want to split this up more
 # Trail coords is a list of [lat, lon] pairs
 def match_roads(network,trail_coords):
-    
-    print('Beginning main processing loop...')
     warnings.filterwarnings("ignore", category=UserWarning) # TODO: Figure out projection issue so this warning is not thrown
     
     # --- MAPPING GPX POINT TO EDGE ENDS --- #
     k = 0 # Iteration counter
     node_list_raw = [] # Will contain the nodes between which pathfinding should take place
     for trail_point in trail_coords:
-        print_overwrite(f'\rHandling GPX point {k} of {len(trail_coords)-1}')
+        print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
 #         print(f'Handling GPX point {k} of {len(trail_coords)-1}')
         nearest_edge = ox.distance.nearest_edges(network['graph'],
                                                  trail_point[1],
@@ -178,7 +176,7 @@ def match_roads(network,trail_coords):
     # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
     route_list_raw = [] # Contains IDs of all nodes that make up the shortest route between the nodes in node_list
     for i in range(0,len(node_list)-1):
-        print_overwrite(f'\rHandling node_list pair {i} of {len(node_list)-2}')
+        print_overwrite(f'\r   Handling node_list pair {i} of {len(node_list)-2}...')
         route_list_raw.extend(get_shortest_route(network, node_list[i], node_list[i+1]))
     print('')
     route_list = remove_successive_duplicates(route_list_raw)
@@ -187,7 +185,7 @@ def match_roads(network,trail_coords):
     segment_list = [] # Contains OSM edge segments that were matched to GPX track
     # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
     for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
-        print_overwrite(f'\rHandling route_list pair {i} of {len(route_list)-2}')
+        print_overwrite(f'\r   Handling route_list pair {i} of {len(route_list)-2}...')
         segment_list.append(get_segments(network, route_list[i], route_list[i+1]))
     print('')
     
@@ -200,14 +198,4 @@ def match_batch(trail_section, trail_coords, delta):
     segment_list = match_roads(network, trail_coords) # Get the corresponding OSM segments
     
     return network, segment_list
-
-def write_batch(filename, segment_list):
-    
-    print('Writing outputs to file...')
-    with open(filename, 'w') as file:
-        csv_writer = writer(file)
-        headers = ['x0','y0','x1','y1','d_cart','d_osm','highway','surface','tracktype']
-        csv_writer.writerow(headers)
-        for segment in segment_list:
-            csv_writer.writerow(segment)
     
