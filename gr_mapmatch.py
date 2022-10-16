@@ -134,6 +134,8 @@ def get_segments(network, node_id_start, node_id_end):
         edge_coords = edge_coords[::-1]
 
     # Filling the segment_list_raw list
+    segment_list = []
+#     print(f'No of points in edge: {len(edge_coords)}')
     for j in range(0,len(edge_coords)-1): # Loop over all vertex pairs in the edge        
         x0 = edge_coords[j][0]
         y0 = edge_coords[j][1]
@@ -148,7 +150,10 @@ def get_segments(network, node_id_start, node_id_end):
             surface = edge['surface'][0]
         if 'tracktype' in edge.columns:
             tracktype = edge['tracktype'][0]
-        return[x0,y0,x1,y1,d_cart,d_osm,highway,surface,tracktype]
+        segment_list.append([x0,y0,x1,y1,d_cart,d_osm,highway,surface,tracktype])
+    
+#     print(f'Length of segment_list inside get_seg: {len(segment_list)}')
+    return segment_list
     
 # Main map matching algorithm, may want to split this up more
 # Trail coords is a list of [lat, lon] pairs
@@ -160,7 +165,6 @@ def match_roads(network,trail_coords):
     node_list_raw = [] # Will contain the nodes between which pathfinding should take place
     for trail_point in trail_coords:
         print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
-#         print(f'Handling GPX point {k} of {len(trail_coords)-1}')
         nearest_edge = ox.distance.nearest_edges(network['graph'],
                                                  trail_point[1],
                                                  trail_point[0]) # ID of the edge that trail_point is closest to
@@ -170,7 +174,6 @@ def match_roads(network,trail_coords):
         node_list_raw.append(nearest_edge_end) # Add it to the list
         k += 1 # Increment iteration counter
     print('')
-#     print(node_list_raw)
     node_list = remove_successive_duplicates(node_list_raw) # Because # trail_point may map to the same nearest_edge_end
     
     # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
@@ -186,7 +189,8 @@ def match_roads(network,trail_coords):
     # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
     for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
         print_overwrite(f'\r   Handling route_list pair {i} of {len(route_list)-2}...')
-        segment_list.append(get_segments(network, route_list[i], route_list[i+1]))
+        segment_list.extend(get_segments(network, route_list[i], route_list[i+1]))
+#         print(f'Length of appended segment_list: {len(segment_list)}')
     print('')
     
     return segment_list
