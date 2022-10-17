@@ -26,7 +26,7 @@ def compare_tracks(trail_coords,data_roads):
     newline.add_to(chart)
     
     # Render the map
-    filepath = "data/chart_tracks.html"
+    filepath = "cache/chart_tracks.html"
     chart.save(filepath)
     
     return filepath
@@ -52,7 +52,7 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
         newmarker.add_to(chart)
     
     # Render the map
-    filepath = "data/chart_repeat.html"
+    filepath = "cache/chart_repeat.html"
     chart.save(filepath)
     
     return filepath
