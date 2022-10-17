@@ -203,3 +203,30 @@ def match_batch(trail_section, trail_coords, delta):
     
     return network, segment_list
     
+    
+def find_last_index(arr, item):
+    rev_arr = arr[::-1]
+    j = rev_arr.index(item)
+    return len(arr) - j - 1
+
+def remove_repeat_segments(data_roads):
+    
+
+    # Calculate if there are any repeats
+    data_roads_filtered = data_roads
+    repeat_rows = data_roads[data_roads.duplicated(['x0','y0'])] # Rows that have a repeated starting point
+    grouped_repeats = repeat_rows.groupby(['x0','y0'])
+    repeat_coords = grouped_repeats.first().index.to_list() # The starting points that are repeated
+
+    # Loop over the repeated starting points, drop the relevant rows
+    for repeat_coord in repeat_coords:
+        mask_x0 = data_roads_filtered['x0']==repeat_coord[0]
+        mask_y0 = data_roads_filtered['y0']==repeat_coord[1]
+        mask = (mask_x0 & mask_y0).values.tolist()
+        # We do this check on mask because a previous rowdrop may already have removed the current repeat
+        if sum(mask)>0:
+            first_index = mask.index(True)
+            last_index = find_last_index(mask, True)
+            data_roads_filtered = data_roads_filtered.drop(data_roads_filtered.index[first_index+1:last_index+1])
+
+    return data_roads_filtered
