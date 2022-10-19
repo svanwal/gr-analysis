@@ -60,29 +60,80 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
     return filepath
 
 # Show the development status of data frame
-def show_development(data_places,tol_d):
+def show_development(data_places,focus):
     
-    # Map setup
-#     mid = np.round(data_places.shape[0]/2)
-#     focus = [data_places.iloc[mid,'x0'],data_places.iloc[mid,'y0']]
-    chart = folium.Map(location=[49.69983, 5.3074], zoom_start=10, tiles="OpenStreetMap") # Focus on Ieper
-
-    colors = (data_places['dev_dist']<tol_d).values.tolist()
-    colors[colors==True] = 1
-    colors[colors==False] = 0
-    
+    # Prepare data to be plotted
+    colors = data_places['development'].values.tolist()
     x = data_places['x0'].values.tolist()
     y = data_places['y0'].values.tolist()
     x.extend(data_places.tail(1)['x1'])
     y.extend(data_places.tail(1)['y1'])
     xy0 = list(zip(x,y))
     xy = [[coord[0],coord[1]] for coord in xy0]
+    
+    # Colormap setup
     colormap = cm.LinearColormap(colors=['green','red'],vmin=0.25,vmax=0.75,index=[0.25,0.75])
     
-    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3)
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+
+    # Draw development type
+    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
     newline.add_to(chart)
         
     # Render the map
     filepath = "cache/chart_development.html"
+    chart.save(filepath)
+    return filepath
+
+def show_traffic(data_places,focus):
+    
+    # Prepare data to be plotted
+    colors = data_places['traffic'].values.tolist()
+    x = data_places['x0'].values.tolist()
+    y = data_places['y0'].values.tolist()
+    x.extend(data_places.tail(1)['x1'])
+    y.extend(data_places.tail(1)['y1'])
+    xy0 = list(zip(x,y))
+    xy = [[coord[0],coord[1]] for coord in xy0]
+    
+    # Colormap setup
+    colormap = cm.LinearColormap(colors=['green','yellow','red'],vmin=0,vmax=2,index=[0,1,2])
+    
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+
+    # Draw development type
+    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
+    newline.add_to(chart)
+        
+    # Render the map
+    filepath = "cache/chart_traffic.html"
+    chart.save(filepath)
+    return filepath
+
+def show_paved(data_places,focus):
+    
+    # Prepare data to be plotted
+    colors = data_places['paved'].values.tolist()
+    x = data_places['x0'].values.tolist()
+    y = data_places['y0'].values.tolist()
+    x.extend(data_places.tail(1)['x1'])
+    y.extend(data_places.tail(1)['y1'])
+    xy0 = list(zip(x,y))
+    xy = [[coord[0],coord[1]] for coord in xy0]
+    
+    # Colormap setup
+    colormap = cm.LinearColormap(colors=['green','yellow','red'],vmin=0,vmax=2,index=[0,1,2])
+    
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+
+    # Draw development type
+    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
+    newline.add_to(chart)
+        
+    # Render the map
+    filepath = "cache/chart_paved.html"
     chart.save(filepath)
     return filepath
