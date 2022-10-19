@@ -1,4 +1,5 @@
 import folium
+import numpy as np
 from IPython.display import IFrame
 
 def get_coords_from_frame(data_roads):
@@ -56,3 +57,26 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
     chart.save(filepath)
     
     return filepath
+
+# Show the development status of data frame
+def show_development(data_places,tol_d):
+    
+    # Map setup
+    mid = np.round(data_places.shape[0]/2)
+    focus = [data_places.iloc[mid,'x0'],data_places.iloc[mid,'y0']]
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+
+    # Draw midpoints according to development status
+    for idx, row in data_places.iterrows():
+        x0 = row['x0']
+        x1 = row['x1']
+        y0 = row['y0']
+        y1 = row['y1']
+        xmid = (x0 + x1)/2
+        ymid = (y0 + y1)/2
+        midpoint = [xmid,ymid]
+        if data_places.iloc[idx,'dev_dist']<tol_d:
+            newmarker = folium.CircleMarker(location=midpoint,radius=2,color='red')
+        else:
+            newmarker = folium.CircleMarker(location=midpoint,radius=2,color='green')
+        newmarker.add_to(chart)

@@ -43,13 +43,24 @@ def process_gpx(filename_in, filename_out):
             
 def write_batch(filename, segment_list):
     
-    print('   Writing outputs to file')
+    print('   Writing outputs to file...')
     with open(filename, 'w') as file:
         csv_writer = writer(file)
         headers = ['x0','y0','x1','y1','d_cart','d_osm','highway','surface','tracktype']
         csv_writer.writerow(headers)
         for segment in segment_list:
             csv_writer.writerow(segment)
+            
+def write_batch_places(filename, data_roads_section):
+    
+    print('   Writing outputs to file...')
+    data_roads_section.to_csv(filename)
+#     with open(filename, 'w') as file:
+#         csv_writer = writer(file)
+#         headers = ['x0','y0','x1','y1','d_cart','d_osm','highway','surface','tracktype','dev_dist']
+#         csv_writer.writerow(headers)
+#         for i, segment in data_roads_section.iterrows():
+#             csv_writer.writerow(segment)
             
 def merge_roads(trailname, trail, points_per_batch):
     
@@ -77,4 +88,32 @@ def write_roads(trailname, data_roads):
 def read_roads(trailname):
     
     filename = f'cache/{trailname}_roads.csv'
-    return pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+    return pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str},index_col=0)
+
+def merge_places(trailname, data_roads, points_per_batch_places):
+    
+    n_batch = int(np.ceil(data_roads.shape[0]/points_per_batch_places)) # Number of batches to be run
+    
+    # Load the first batch
+    filename = f'cache/{trailname}_places_0to{points_per_batch_places-1}.csv'
+    data = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+    
+    # Load and merge the remaining batches
+    for b in range(1,n_batch): # b is the batch counter
+        n1 = b*points_per_batch_places # First point
+        n2 = min(n1 + points_per_batch_places, data_roads.shape[0]) - 1 # Last point
+        filename = f'cache/{trailname}_places_{n1}to{n2}.csv'
+        data_new = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+        data = pd.concat([data,data_new],ignore_index=True)
+        
+    return data
+
+def write_places(trailname, data_places):
+    
+    filename = f'cache/{trailname}_places.csv'
+    data_places.to_csv(filename)
+
+def read_places(trailname):
+    
+    filename = f'cache/{trailname}_places.csv'
+    return pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str},index_col=0)
