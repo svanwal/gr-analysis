@@ -1,6 +1,7 @@
 import folium
 import numpy as np
 from IPython.display import IFrame
+import branca.colormap as cm
 
 def get_coords_from_frame(data_roads):
     
@@ -62,21 +63,41 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
 def show_development(data_places,tol_d):
     
     # Map setup
-    mid = np.round(data_places.shape[0]/2)
-    focus = [data_places.iloc[mid,'x0'],data_places.iloc[mid,'y0']]
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+#     mid = np.round(data_places.shape[0]/2)
+#     focus = [data_places.iloc[mid,'x0'],data_places.iloc[mid,'y0']]
+    chart = folium.Map(location=[49.69983, 5.3074], zoom_start=10, tiles="OpenStreetMap") # Focus on Ieper
 
-    # Draw midpoints according to development status
-    for idx, row in data_places.iterrows():
-        x0 = row['x0']
-        x1 = row['x1']
-        y0 = row['y0']
-        y1 = row['y1']
-        xmid = (x0 + x1)/2
-        ymid = (y0 + y1)/2
-        midpoint = [xmid,ymid]
-        if data_places.iloc[idx,'dev_dist']<tol_d:
-            newmarker = folium.CircleMarker(location=midpoint,radius=2,color='red')
-        else:
-            newmarker = folium.CircleMarker(location=midpoint,radius=2,color='green')
-        newmarker.add_to(chart)
+    colors = (data_places['dev_dist']<tol_d).values.tolist()
+    colors[colors==True] = 1
+    colors[colors==False] = 0
+    
+    x = data_places['x0'].values.tolist()
+    y = data_places['y0'].values.tolist()
+    x.extend(data_places.tail(1)['x1'])
+    y.extend(data_places.tail(1)['y1'])
+    xy0 = list(zip(x,y))
+    xy = [[coord[0],coord[1]] for coord in xy0]
+    colormap = cm.LinearColormap(colors=['green','red'],vmin=0.25,vmax=0.75,index=[0.25,0.75])
+    
+    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3)
+    newline.add_to(chart)
+    
+#     # Draw midpoints according to development status
+#     for idx, row in data_places.iterrows():
+#         x0 = row['x0']
+#         x1 = row['x1']
+#         y0 = row['y0']
+#         y1 = row['y1']
+#         xmid = (x0 + x1)/2
+#         ymid = (y0 + y1)/2
+#         midpoint = [xmid,ymid]
+#         if row['dev_dist']<tol_d:
+#             newmarker = folium.CircleMarker(location=midpoint,radius=2,color='red')
+#         else:
+#             newmarker = folium.CircleMarker(location=midpoint,radius=2,color='green')
+#         newmarker.add_to(chart)
+        
+    # Render the map
+    filepath = "cache/chart_development.html"
+    chart.save(filepath)
+    return filepath
