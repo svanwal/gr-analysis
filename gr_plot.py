@@ -81,21 +81,6 @@ def show_development(data_places,tol_d):
     
     newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3)
     newline.add_to(chart)
-    
-#     # Draw midpoints according to development status
-#     for idx, row in data_places.iterrows():
-#         x0 = row['x0']
-#         x1 = row['x1']
-#         y0 = row['y0']
-#         y1 = row['y1']
-#         xmid = (x0 + x1)/2
-#         ymid = (y0 + y1)/2
-#         midpoint = [xmid,ymid]
-#         if row['dev_dist']<tol_d:
-#             newmarker = folium.CircleMarker(location=midpoint,radius=2,color='red')
-#         else:
-#             newmarker = folium.CircleMarker(location=midpoint,radius=2,color='green')
-#         newmarker.add_to(chart)
         
     # Render the map
     filepath = "cache/chart_development.html"

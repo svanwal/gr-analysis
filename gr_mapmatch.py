@@ -228,3 +228,78 @@ def remove_repeat_segments(data_roads):
             data_roads_filtered = data_roads_filtered.drop(data_roads_filtered.index[first_index+1:last_index+1])
 
     return data_roads_filtered
+
+def get_traffic_type(data_places,types_slow,types_heavy):
+    
+    data_places['traffic'] = 1 # normal roads
+    mask_slow = data_places['highway'].isin(types_slow)
+    mask_heavy = data_places['highway'].isin(types_heavy)
+    data_places.loc[mask_slow,'traffic'] = 0 # slow roads
+    data_places.loc[mask_heavy,'traffic'] = 2 # heavy roads
+    
+    return data_places
+
+def grab_first(x):
+    
+    if x is not None:
+        bb = x.strip('][')
+        cc = bb.split(',')
+        dd = [element.strip().strip("'") for element in cc]
+        return dd[0]
+    
+    return x
+
+# def is_paved(row,tracktype_p0,tracktype_p1,tracktype_p2,surface_p0,surface_p1,highway_p1):
+
+#     if row['first_tracktype'].isin(tracktype_p0):
+#         return 0
+#     elif row['first_tracktype'].isin(tracktype_p1):
+#         return 1
+#     elif row['first_tracktype'].isin(tracktype_p2):
+#         return 2
+#     else:
+#         if row['first_surface'].isin(surface_p0):
+#             return 0
+#         elif row['first_surface'].isin(surface_p1):
+#             return 1
+        
+    
+
+def get_paved_type(data_roads,tracktype_p0,tracktype_p1,tracktype_p2,surface_p0,surface_p1,highway_p1):
+    
+    # Replacing nans
+    data_roads['highway'] = data_roads['highway'].replace({np.nan:"none"})
+    data_roads['surface'] = data_roads['surface'].replace({np.nan:"none"})
+    data_roads['tracktype'] = data_roads['tracktype'].replace({np.nan:"none"})
+    
+    # Grabbing first one
+    data_roads['first_highway'] = data_roads['highway'].apply(grab_first)
+    data_roads['first_surface'] = data_roads['surface'].apply(grab_first)
+    data_roads['first_tracktype'] = data_roads['tracktype'].apply(grab_first)
+    
+    # Establishing status
+    data_roads['paved'] = -1
+    this_paved = -1
+    for idx, row in data_roads.iterrows():
+        if row['first_tracktype'] in tracktype_p0:
+            this_paved = 0
+        elif row['first_tracktype'] in tracktype_p1:
+            this_paved = 1
+        elif row['first_tracktype'] in tracktype_p2:
+            this_paved = 2
+        else:
+            if row['first_surface'] in surface_p0:
+                this_paved = 0
+            elif row['first_surface'] in surface_p1:
+                this_paved = 1
+            elif row['first_surface'] in ['none']:
+                this_paved = 2
+            else:
+                if row['first_highway'] in highway_p1:
+                    this_paved = 1
+                else:
+                    this_paved = 2
+        
+        data_roads.loc[idx,'paved'] = this_paved
+        
+    return data_roads

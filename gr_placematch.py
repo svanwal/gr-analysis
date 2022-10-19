@@ -49,3 +49,11 @@ def match_batch(data_roads_section, delta):
     places = get_landuse_places(bbox) # Download polygons with landuse tags that indicate heavy development
     near_development = get_development_status(data_roads_section, places)
     return near_development
+
+def get_development_type(data_places,tol_d):
+    
+    data_places['development'] = 1
+    mask_undev = (data_places['dev_dist']>tol_d)
+    data_places.loc[mask_undev,'development'] = 0  # 0 is undeveloped, 1 is developed
+    
+    return data_places
