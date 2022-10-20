@@ -2,8 +2,10 @@ import osmnx  as ox
 import pandas as pd
 import numpy  as np
 from itertools import groupby
+import gr_utils # Contains useful geometry functions
 from csv import writer
 import warnings
+import os.path
 
 # Returns the latitude and longitude of a subsection of trail as a list
 def trail_to_coords(trail_section):
@@ -229,77 +231,26 @@ def remove_repeat_segments(data_roads):
 
     return data_roads_filtered
 
-def get_traffic_type(data_places,types_slow,types_heavy):
+def trail2roads(trailname, trail, points_per_batch, delta):
     
-    data_places['traffic'] = 1 # normal roads
-    mask_slow = data_places['highway'].isin(types_slow)
-    mask_heavy = data_places['highway'].isin(types_heavy)
-    data_places.loc[mask_slow,'traffic'] = 0 # slow roads
-    data_places.loc[mask_heavy,'traffic'] = 2 # heavy roads
-    
-    return data_places
+    # Matching GPX track to OSM network (uses _osm_network_download under the hood)
+    n_trail = len(trail) # Number of GPX points in the trail
+    n_batch = int(np.ceil(trail.shape[0]/points_per_batch)) # Number of batches to be run
+    for b in range(n_batch): # Using batch counter b
 
-def grab_first(x):
-    
-    if x is not None:
-        bb = x.strip('][')
-        cc = bb.split(',')
-        dd = [element.strip().strip("'") for element in cc]
-        return dd[0]
-    
-    return x
+        # Define the range of GPX points to process in the current batch
+        n1 = b*points_per_batch # First point of this batch
+        n2 = min(n1 + points_per_batch, n_trail) # Last point of this batch (clipped)
+        trail_section = trail.loc[n1:n2] # Select that range of GPX points
+        trail_coords  = trail_to_coords(trail_section) # Convert the points into a list of [lat, lon] pairs
 
-# def is_paved(row,tracktype_p0,tracktype_p1,tracktype_p2,surface_p0,surface_p1,highway_p1):
-
-#     if row['first_tracktype'].isin(tracktype_p0):
-#         return 0
-#     elif row['first_tracktype'].isin(tracktype_p1):
-#         return 1
-#     elif row['first_tracktype'].isin(tracktype_p2):
-#         return 2
-#     else:
-#         if row['first_surface'].isin(surface_p0):
-#             return 0
-#         elif row['first_surface'].isin(surface_p1):
-#             return 1
-        
-    
-
-def get_paved_type(data_roads,tracktype_p0,tracktype_p1,tracktype_p2,surface_p0,surface_p1,highway_p1):
-    
-    # Replacing nans
-    data_roads['highway'] = data_roads['highway'].replace({np.nan:"none"})
-    data_roads['surface'] = data_roads['surface'].replace({np.nan:"none"})
-    data_roads['tracktype'] = data_roads['tracktype'].replace({np.nan:"none"})
-    
-    # Grabbing first one
-    data_roads['first_highway'] = data_roads['highway'].apply(grab_first)
-    data_roads['first_surface'] = data_roads['surface'].apply(grab_first)
-    data_roads['first_tracktype'] = data_roads['tracktype'].apply(grab_first)
-    
-    # Establishing status
-    data_roads['paved'] = -1
-    this_paved = -1
-    for idx, row in data_roads.iterrows():
-        if row['first_tracktype'] in tracktype_p0:
-            this_paved = 0
-        elif row['first_tracktype'] in tracktype_p1:
-            this_paved = 1
-        elif row['first_tracktype'] in tracktype_p2:
-            this_paved = 2
-        else:
-            if row['first_surface'] in surface_p0:
-                this_paved = 0
-            elif row['first_surface'] in surface_p1:
-                this_paved = 1
-            elif row['first_surface'] in ['none']:
-                this_paved = 2
-            else:
-                if row['first_highway'] in highway_p1:
-                    this_paved = 1
-                else:
-                    this_paved = 2
-        
-        data_roads.loc[idx,'paved'] = this_paved
-        
-    return data_roads
+        # Check if this batch was processed before
+        batch_out = f'cache/{trailname}_roads_{n1}to{n2}.csv'
+        print(f'Handling {b} of {n_batch-1} that covers GPX track points {n1} through {n2}...')
+        if os.path.isfile(batch_out): # It already exists
+            print('   This batch was processed before, skipping.')
+        else: # It does not exist, so process it
+            network, segment_list = match_batch(trail_section, trail_coords, delta)
+            gr_utils.write_batch(batch_out, segment_list)
+            print('   Finished this batch.')
+            print('')

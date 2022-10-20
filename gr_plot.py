@@ -3,6 +3,15 @@ import numpy as np
 from IPython.display import IFrame
 import branca.colormap as cm
 
+def get_fullcoords_from_frame(data):
+    
+    x = data['x0'].values.tolist()
+    y = data['y0'].values.tolist()
+    x.extend(data.tail(1)['x1'])
+    y.extend(data.tail(1)['y1'])
+    xy = list(zip(x,y))
+    return [[coord[0],coord[1]] for coord in xy]
+
 def get_coords_from_frame(data_roads):
     
     x = data_roads['x0'].values.tolist()
@@ -135,5 +144,30 @@ def show_paved(data_places,focus):
         
     # Render the map
     filepath = "cache/chart_paved.html"
+    chart.save(filepath)
+    return filepath
+
+def show_paved_detail(data,focus):
+
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    
+    # Draw path
+    coords = get_fullcoords_from_frame(data)
+    for i in range(len(coords)-1):
+        # Determine color based on paved status
+        if data.loc[i,'paved']==0:
+            c = 'green'
+        elif data.loc[i,'paved']==1:
+            c = 'yellow'
+        else:
+            c = 'red'
+        # Determine label based on highway/surface/tracktype
+        label = f"{data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+        newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
+        newline.add_to(chart)
+        
+    # Render the map
+    filepath = "cache/chart_detail.html"
     chart.save(filepath)
     return filepath

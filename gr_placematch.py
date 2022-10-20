@@ -1,5 +1,8 @@
 import shapely
 import osmnx  as ox
+import numpy as np
+import os.path
+import gr_utils
 
 def is_polygon(row):
     
@@ -49,11 +52,28 @@ def match_batch(data_roads_section, delta):
     places = get_landuse_places(bbox) # Download polygons with landuse tags that indicate heavy development
     near_development = get_development_status(data_roads_section, places)
     return near_development
-
-def get_development_type(data_places,tol_d):
-    
-    data_places['development'] = 1
-    mask_undev = (data_places['dev_dist']>tol_d)
-    data_places.loc[mask_undev,'development'] = 0  # 0 is undeveloped, 1 is developed
     
     return data_places
+
+def roads2places(trailname,data_roads,points_per_batch_places, delta_places):
+    
+    ## Matching GPX track to OSM places (uses _osm_place_download under the hood)
+    n_roads = len(data_roads) # Number of segments in data_roads
+    n_batch_places = int(np.ceil(n_roads/points_per_batch_places)) # Number of batches to be run
+    data_roads['dev_dist'] = 0.0 # filling
+    
+    for b in range(n_batch_places): # Using batch counter b
+
+        # Define the range of segments to process in the current batch
+        n1 = b*points_per_batch_places # First point of this batch
+        n2 = min(n1 + points_per_batch_places, n_roads) - 1 # Last point of this batch (clipped)
+
+        # Check if this batch was processed before
+        batch_out = f'cache/{trailname}_places_{n1}to{n2}.csv'
+        print(f'Handling {b} of {n_batch_places-1} that covers road segments {n1} through {n2}...')
+        if os.path.isfile(batch_out): # It already exists
+            print('   This batch was processed before, skipping.')
+        else: # It does not exist, so process it (use loc to avoid selection error)
+            data_roads.loc[n1:n2,'dev_dist'] = match_batch(data_roads.loc[n1:n2], delta_places)
+            gr_utils.write_batch_places(batch_out, data_roads.loc[n1:n2])
+            print('   Finished this batch.')
