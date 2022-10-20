@@ -2,6 +2,7 @@ import folium
 import numpy as np
 from IPython.display import IFrame
 import branca.colormap as cm
+import gr_mapmatch
 
 def get_fullcoords_from_frame(data):
     
@@ -163,7 +164,45 @@ def show_paved_detail(data,focus):
         else:
             c = 'red'
         # Determine label based on highway/surface/tracktype
-        label = f"{data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+        label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+        newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
+        newline.add_to(chart)
+        
+    # Render the map
+    filepath = "cache/chart_detail.html"
+    chart.save(filepath)
+    return filepath
+
+def get_focus(trail):
+    
+    trail_coords  = gr_mapmatch.trail_to_coords(trail)
+    mid = int(np.round(len(trail_coords)/2))
+    return trail_coords[mid]
+
+def show_type_detail(data,focus):
+
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    
+    # Draw path
+    coords = get_fullcoords_from_frame(data)
+    for i in range(len(coords)-1):
+        # Determine color based on paved status
+        if data.loc[i,'gr_type']==1:
+            c = 'green'
+        elif data.loc[i,'gr_type']==2:
+            c = '#53e0fc' # lightblue
+        elif data.loc[i,'gr_type']==3:
+            c = 'red'
+        elif data.loc[i,'gr_type']==4:
+            c = 'blue'
+        elif data.loc[i,'gr_type']==5:
+            c = 'magenta'
+        else: # type 6
+            c = 'yellow'
+
+        # Determine label based on highway/surface/tracktype
+        label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
         newline.add_to(chart)
         

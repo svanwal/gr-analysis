@@ -44,27 +44,44 @@ def get_paved_type(data,tracktype_p0,tracktype_p1,tracktype_p2,surface_p0,surfac
     data['paved'] = -1
     this_paved = -1
     for idx, row in data.iterrows():
-        if row['first_tracktype'] in tracktype_p0:
+        if row['first_tracktype'] in tracktype_p0: # Unpaved tracktype
             this_paved = 0
-        elif row['first_tracktype'] in tracktype_p1:
+        elif row['first_tracktype'] in tracktype_p1: # Semi-paved tracktype
             this_paved = 1
-        elif row['first_tracktype'] in tracktype_p2:
+        elif row['first_tracktype'] in tracktype_p2: # Paved tracktype
             this_paved = 2
-        else:
-            if row['first_surface'] in surface_p0:
+        else: # Empty tracktype
+            if row['first_surface'] in surface_p0: # Unpaved surface type
                 this_paved = 0
-            elif row['first_surface'] in surface_p1:
+            elif row['first_surface'] in surface_p1: # Semi-paved surface type
                 this_paved = 1
-            elif row['first_surface'] in ['none']:
-                this_paved = 2
-            else:
-                if row['first_highway'] in highway_p1:
+            elif row['first_surface'] in ['none']: # Empty surface type
+                if row['first_highway'] in highway_p1: # Semi-paved highway type
                     this_paved = 1
-                else:
+                else: # Paved highway type
                     this_paved = 2
+            else: # Paved surface type
+                this_paved = 2
         
         data.loc[idx,'paved'] = this_paved
         
+    return data
+
+def row2type(row):
+    
+    types_light = [[1,1,4],[1,1,6],[3,3,3]]
+    types_heavy = [[2,2,4],[2,2,5],[3,3,3]]
+    
+    if row['development']==0: # light
+        gr_type = types_light[row['traffic']][row['paved']]
+    else: # heavy
+        gr_type = types_heavy[row['traffic']][row['paved']]
+    
+    return gr_type
+
+def get_gr_type(data):
+    
+    data['gr_type'] = data.apply(row2type, axis=1)
     return data
 
 def places2processed(data,
@@ -80,5 +97,8 @@ def places2processed(data,
     
     # Establish development status
     data = get_development_type(data,tol_d)
+    
+    # Establish GR route type
+    data = get_gr_type(data)
     
     return data
