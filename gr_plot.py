@@ -82,7 +82,7 @@ def show_development(data_places,focus):
     xy = [[coord[0],coord[1]] for coord in xy0]
     
     # Colormap setup
-    colormap = cm.LinearColormap(colors=['green','red'],vmin=0.25,vmax=0.75,index=[0.25,0.75])
+    colormap = cm.LinearColormap(colors=['#21ce2c','red'],vmin=0.25,vmax=0.75,index=[0.25,0.75])
     
     # Map setup
     chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
@@ -108,7 +108,7 @@ def show_traffic(data_places,focus):
     xy = [[coord[0],coord[1]] for coord in xy0]
     
     # Colormap setup
-    colormap = cm.LinearColormap(colors=['green','yellow','red'],vmin=0,vmax=2,index=[0,1,2])
+    colormap = cm.LinearColormap(colors=['#21ce2c','black','red'],vmin=0,vmax=2,index=[0,1,2])
     
     # Map setup
     chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
@@ -134,7 +134,7 @@ def show_paved(data_places,focus):
     xy = [[coord[0],coord[1]] for coord in xy0]
     
     # Colormap setup
-    colormap = cm.LinearColormap(colors=['green','yellow','red'],vmin=0,vmax=2,index=[0,1,2])
+    colormap = cm.LinearColormap(colors=['#21ce2c','#21ce2c','black'],vmin=0,vmax=2,index=[0,1,2])
     
     # Map setup
     chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
@@ -158,11 +158,11 @@ def show_paved_detail(data,focus):
     for i in range(len(coords)-1):
         # Determine color based on paved status
         if data.loc[i,'paved']==0:
-            c = 'green'
+            c = '#21ce2c'
         elif data.loc[i,'paved']==1:
-            c = 'yellow'
+            c = '#21ce2c'
         else:
-            c = 'red'
+            c = 'black'
         # Determine label based on highway/surface/tracktype
         label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
@@ -202,7 +202,9 @@ def show_type_detail(data,focus):
             c = 'yellow'
 
         # Determine label based on highway/surface/tracktype
-        label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+        label = f"Type {data.loc[i,'gr_type']} with hwy:{data.loc[i,'highway']} // srf:{data.loc[i,'surface']} // trk:{data.loc[i,'tracktype']} // trf:{data.loc[i,'traffic']} // dev:{data.loc[i,'development']}"
+#         label = f"Segment {i} // highway:{data.loc[i,'highway']} // surface:{data.loc[i,'surface']} // tracktype:{data.loc[i,'tracktype']} // traffic:{data.loc[i,'traffic']} // development:{data.loc[i,'development']}"
+#         label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
         newline.add_to(chart)
         

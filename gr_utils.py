@@ -2,6 +2,7 @@ import sys
 import re
 import numpy as np
 import pandas as pd
+import os.path
 from csv import writer
 
 # This function returns a list with the [lat, lon] of each point within an OSM edge
@@ -122,3 +123,20 @@ def read_places(trailname):
     
     filename = f'cache/{trailname}_places.csv'
     return pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str},index_col=0)
+
+def get_gpx(trailname):
+    
+    filename_gpx = 'data_input/' + trailname + '.gpx'
+    filename_csv = 'data_output/' + trailname + '.csv'
+    if not os.path.isfile(filename_csv): # The GPX file was not processed into a clean CSV file before
+        if not os.path.isfile(filename_gpx): # The GPX file does not exist, throw error
+            raise ValueError(f'The GPX file <{filename_gpx}> was not found! Please make sure it exists.')
+        else: # The GPX file exists, so convert it into a clean CSV file
+            print(f'Converting GPX file <{filename_gpx}> into cleaned CSV file <{filename_csv}>...')
+            gr_utils.process_gpx(filename_gpx,filename_csv)
+            print('Completed conversion.')
+    print(f'Loading trail points from <{filename_gpx}>...')
+    trail = pd.read_csv(filename_csv) # Now read the cleaned CSV file into a DataFrame (latitude, longitude, elevation)
+    print('Finished loading.')
+    
+    return trail
