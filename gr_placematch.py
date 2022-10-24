@@ -61,30 +61,62 @@ def get_development_distance(data_roads_section, places):
                 
     return dvec
 
+# # TODO - don't modify data while looping
+# def add_city_names(data, n1, n2, places_admin8, places_admin9):
+    
+#     # Looping over segments
+#     for i in range(n1,n2):
+        
+# #         print(i)
+#         xmid = (data.iloc[i]['x0'] + data.iloc[i]['x1'])/2
+#         ymid = (data.iloc[i]['y0'] + data.iloc[i]['y1'])/2
+#         point = shapely.geometry.Point(ymid,xmid) # Segment midpoint
+        
+#         # Check if the segment midpoint lies in any admin level 8 regions
+#         for j, place in places_admin8.iterrows():
+#             if point.within(place['geometry']):
+#                 data.iloc[i]['city8'] = place['name']
+#                 break
+                
+#         # Check if the segment midpoint lies in any admin level 9 regions
+#         for j, place in places_admin9.iterrows():
+#             if point.within(place['geometry']):
+#                 data.iloc[i]['city9'] = place['name']
+#                 break
+    
+#     return data
+
+
 # TODO - don't modify data while looping
-def add_city_names(data, n1, n2, places_admin8, places_admin9):
+def get_city_names(data_section, places_admin8, places_admin9):
+    
+    city8 = []
+    city9 = []
     
     # Looping over segments
-    for i in range(n1,n2):
-        
-#         print(i)
-        xmid = (data.iloc[i]['x0'] + data.iloc[i]['x1'])/2
-        ymid = (data.iloc[i]['y0'] + data.iloc[i]['y1'])/2
+    for idx, row in data_section.iterrows():
+
+        xmid = (row['x0'] + row['x1'])/2
+        ymid = (row['y0'] + row['y1'])/2
         point = shapely.geometry.Point(ymid,xmid) # Segment midpoint
         
         # Check if the segment midpoint lies in any admin level 8 regions
+        this_city8 = ''
         for j, place in places_admin8.iterrows():
             if point.within(place['geometry']):
-                data.iloc[i]['city8'] = place['name']
+                this_city8 = place['name']
                 break
+        city8.append(this_city8)
                 
         # Check if the segment midpoint lies in any admin level 9 regions
+        this_city9 = ''
         for j, place in places_admin9.iterrows():
             if point.within(place['geometry']):
-                data.iloc[i]['city9'] = place['name']
+                this_city9 = place['name']
                 break
+        city9.append(this_city9)
     
-    return data
+    return city8, city9
 
 def add_place_info(data_roads, delta, n1, n2):
 
@@ -96,7 +128,10 @@ def add_place_info(data_roads, delta, n1, n2):
     data_roads.loc[n1:n2,'dev_dist'] = get_development_distance(data_roads.loc[n1:n2], places_landuse)
     
     # Grab 
-    data_roads = add_city_names(data_roads, n1, n2, places_admin8, places_admin9)
+#     data_roads = add_city_names(data_roads, n1, n2, places_admin8, places_admin9)
+    city8, city9 = get_city_names(data_roads.loc[n1:n2], places_admin8, places_admin9)
+    data_roads.loc[n1:n2,'city8'] = city8
+    data_roads.loc[n1:n2,'city9'] = city9
     
     return data_roads
 
