@@ -84,6 +84,12 @@ def get_gr_type(data):
     data['gr_type'] = data.apply(row2type, axis=1)
     return data
 
+def get_city_name(row):
+    
+    if row['city9'] == 'none':
+        return row['city8']
+    return row['city9']
+
 def places2processed(data,
                      tol_d,
                      types_slow,types_heavy,
@@ -100,5 +106,8 @@ def places2processed(data,
     
     # Establish GR route type
     data = get_gr_type(data)
+    
+    # Select city name from city8 & city9
+    data['city'] = data.apply(get_city_name,axis=1)
     
     return data

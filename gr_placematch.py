@@ -64,7 +64,7 @@ def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
         d_vec.append(d)
    
         # Check if the segment midpoint lies in any admin level 8 regions
-        city8 = ''
+        city8 = 'none'
         for j, place in places_admin8.iterrows():
             if point.within(place['geometry']):
                 city8 = place['name']
@@ -72,7 +72,7 @@ def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
         city8_vec.append(city8)
 
         # Check if the segment midpoint lies in any admin level 9 regions
-        city9 = ''
+        city9 = 'none'
         for j, place in places_admin9.iterrows():
             if point.within(place['geometry']):
                 city9 = place['name']
