@@ -50,7 +50,7 @@ def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
     city8_vec = []
     city9_vec = []
     
-    for i, segment in data_roads_section.iterrows():
+    for i, segment in data_section.iterrows():
 
         xmid = (segment['x0'] + segment['x1'])/2
         ymid = (segment['y0'] + segment['y1'])/2
