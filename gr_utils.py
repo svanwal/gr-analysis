@@ -118,6 +118,17 @@ def write_processed(trailname, data):
     
     filename = f'data_output/{trailname}_processed.csv'
     data.to_csv(filename)
+    
+def read_processed(trailname):
+    
+    filename_processed = 'data_output/' + trailname + '_processed.csv'
+    if not os.path.isfile(filename_processed): # The PROCESSED file does not exist
+        ValueError('Error file not found, did you process it?')
+    data = pd.read_csv(filename_processed,
+                       dtype={'highway':str, 'surface': str, 'tracktype':str,
+                              'city8':str, 'city9':str, 'city':str},
+                       index_col=0)
+    return data
 
 def read_places(trailname):
     

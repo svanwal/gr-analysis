@@ -86,9 +86,9 @@ def get_gr_type(data):
 
 def get_city_name(row):
     
-    if row['city9'] == 'none':
-        return row['city8']
-    return row['city9']
+    if row['city8'] == 'none':
+        return row['city9']
+    return row['city8']
 
 def places2processed(data,
                      tol_d,
@@ -110,4 +110,12 @@ def places2processed(data,
     # Select city name from city8 & city9
     data['city'] = data.apply(get_city_name,axis=1)
     
+    return data
+
+def calculate_cumulative_distances(data):
+    
+    data['d_cum'] = data['d_cart'].cumsum()
+    data['d0'] = data['d_cum'].shift(1)
+    data.loc[0,'d0'] = 0
+    data['d1'] = data['d_cum']
     return data

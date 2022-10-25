@@ -3,6 +3,7 @@ import numpy as np
 from IPython.display import IFrame
 import branca.colormap as cm
 import gr_mapmatch
+import matplotlib.pyplot as plt
 
 def get_fullcoords_from_frame(data):
     
@@ -26,7 +27,7 @@ def compare_tracks(trail_coords,data_roads):
     
     # Map setup
     mid = int(len(trail_coords)/2)
-    chart = folium.Map(location=trail_coords[mid], zoom_start=12, tiles="OpenStreetMap") 
+    chart = folium.Map(location=trail_coords[mid], zoom_start=11, tiles="OpenStreetMap") 
     
     # Draw GPX track
     newline = folium.PolyLine(locations=trail_coords, weight=3, color='red')
@@ -47,7 +48,7 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
     
     # Map setup
     mid = int(len(trail_coords)/2)
-    chart = folium.Map(location=trail_coords[mid], zoom_start=12, tiles="OpenStreetMap") 
+    chart = folium.Map(location=trail_coords[mid], zoom_start=11, tiles="OpenStreetMap") 
     
     # Draw GPX track
     newline = folium.PolyLine(locations=trail_coords, weight=3, color='red')
@@ -85,7 +86,7 @@ def show_development(data_places,focus):
     colormap = cm.LinearColormap(colors=['#21ce2c','red'],vmin=0.25,vmax=0.75,index=[0.25,0.75])
     
     # Map setup
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
 
     # Draw development type
     newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
@@ -111,7 +112,7 @@ def show_traffic(data_places,focus):
     colormap = cm.LinearColormap(colors=['#21ce2c','black','red'],vmin=0,vmax=2,index=[0,1,2])
     
     # Map setup
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
 
     # Draw development type
     newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
@@ -137,7 +138,7 @@ def show_paved(data_places,focus):
     colormap = cm.LinearColormap(colors=['#21ce2c','#21ce2c','black'],vmin=0,vmax=2,index=[0,1,2])
     
     # Map setup
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
 
     # Draw development type
     newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
@@ -151,7 +152,7 @@ def show_paved(data_places,focus):
 def show_paved_detail(data,focus):
 
     # Map setup
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
     
     # Draw path
     coords = get_fullcoords_from_frame(data)
@@ -182,7 +183,7 @@ def get_focus(trail):
 def show_type_detail(data,focus):
 
     # Map setup
-    chart = folium.Map(location=focus, zoom_start=10, tiles="OpenStreetMap")
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
     
     # Draw path
     coords = get_fullcoords_from_frame(data)
