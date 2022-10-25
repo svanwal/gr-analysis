@@ -209,6 +209,6 @@ def show_type_detail(data,focus):
         newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_detail.html"
+    filepath = "cache/chart_type.html"
     chart.save(filepath)
     return filepath

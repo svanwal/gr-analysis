@@ -97,14 +97,14 @@ def merge_places(trailname, data_roads, points_per_batch_places):
     
     # Load the first batch
     filename = f'cache/{trailname}_places_0to{points_per_batch_places-1}.csv'
-    data = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+    data = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str},index_col=0)
     
     # Load and merge the remaining batches
     for b in range(1,n_batch): # b is the batch counter
         n1 = b*points_per_batch_places # First point
         n2 = min(n1 + points_per_batch_places, data_roads.shape[0]) - 1 # Last point
         filename = f'cache/{trailname}_places_{n1}to{n2}.csv'
-        data_new = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str})
+        data_new = pd.read_csv(filename,dtype={'highway':str, 'surface': str, 'tracktype':str},index_col=0)
         data = pd.concat([data,data_new],ignore_index=True)
         
     return data
