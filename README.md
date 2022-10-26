@@ -20,11 +20,16 @@ Although these are well-established, the GR organization does not currently have
 - **Present this data in a useful manner** that allows the organization to easily identify route sections that can be adjusted in order to meet/improve the quality criteria.
 
 The detailed methodology of this project is discussed below. This project was developed in Python with the use of Jupyter notebooks and makes use of the following packages:
+
 **Mapping and geometry packages**
 - [osmnx](https://github.com/gboeing/osmnx)
 - [shapely](https://github.com/shapely/shapely)
+
 **Data analysis packages**
 - [pandas](https://github.com/pandas-dev/pandas)
 - [geopandas](https://github.com/geopandas/geopandas)
 - [numpy](https://github.com/numpy/numpy)
 
+**Data visualization packages**
+- [matplotlib](https://github.com/matplotlib/matplotlib)
+- [folium](https://github.com/python-visualization/folium)
