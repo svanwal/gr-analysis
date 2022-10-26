@@ -112,3 +112,29 @@ However, it remains necessary to perform some advanced processing of the OSM net
 
 This is why it is not straightforward to determine precisely which set of OSM edges should be covered by a route. The process used to perform this determination is described below. Similarly, the process used to collect relevant area information is described.
 
+# Road matching
+This page describes how a hiking route may be converted into a sequence of traversed OSM edges with their corresponding `highway`, `surface`, and `tracktype` properties. It is tempting to simply match each (latitude, longitude) point of a GPX track to the nearest OSM node, which could be done using the [nearest_nodes](https://github.com/gboeing/osmnx/blob/fb4dfb394c13e8ba33324c11ba91c4b589d412a2/osmnx/distance.py#L162) function of the OSMnx package. However, this method is flawed due to the position errors and potential sparsity of the GPX track. This is illustrated in the figure below, where three GPX points are mapped to the wrong OSM node. This results in the blue 'matched track' that clearly does not match the actual path that the GPX track follows.
+
+![alt text](images/wrong-mapping.jpg)
+
+Instead, we use the following approach. For each GPX point, we determine the nearest edge from the OSM network, using the [nearest_edges](https://github.com/gboeing/osmnx/blob/fb4dfb394c13e8ba33324c11ba91c4b589d412a2/osmnx/distance.py#L237) function from the OSMnx package. Then, we take the two end nodes of that edge, and calculate which of the two our GPX point is closest to. This node is then added to the list of traversed nodes. This process is illustrated below.
+
+![alt text](images/right-mapping.jpg)
+
+Note that, even with this approach, it is still possible for some nodes not to be included in the list of traversed nodes. This may happen when the GPX track is sparsely populated, as illustrated by the orange node in the figure above. We correct for this by looping through the list of traversed nodes and calculating the shortest path between each successive node pair, using the [shortest_path](https://github.com/gboeing/osmnx/blob/fb4dfb394c13e8ba33324c11ba91c4b589d412a2/osmnx/distance.py#L379) function from the OSMnx package. This results in a final list of nodes that are successively connected with edges.
+
+For each of these edges, we extract the underlying geometry (points with latitude/longitude coordinates) as well as the `highway`, `surface`, and `tracktype` properties, as illustrated below. This allows us to finally extract a list of OSM segments with associated properties that compose a hiking route defined by a series of GPX points. These properties can be processed into the required GR properties by following the rules described above.
+
+![alt text](images/segments.jpg)
+
+Next, we must also extract information about the areas surrounding the hiking route. This process is detailed below.
+
+# Place matching
+Extracting the relevant area properties is straightforward. Using OSMnx, we query the OSM database for all areas that have a `landuse` or `admin_level` key, in the immediate neighborhood of the considered hiking route. Using the resulting list of areas, two properties are calculated:
+
+- Dev_dist (distance to the nearest developed area): For each segment of the hiking route, we calculate the minimum distance to any area with a `landuse` value that indicates heavy development, as defined above. This calculation is performed using the `distance` function from the Shapely package. This distance value allows us to classify a route segment as having heavy development if it lies within e.g. 25 meters from the nearest  area with a corresponding `landuse` value.
+- City: For each segment of the hiking route, we calculate which area with an admin_level of 8 ('gemeente') or 9 ('deelgemeente') that segment lies within. This calculation is performed using the `within` function from the Shapely package. The corresponding town/city name is collected and stored, and can be useful when plotting the hiking route data.
+
+This process is also illustrated below.
+
+![alt text](images/areas.jpg)
