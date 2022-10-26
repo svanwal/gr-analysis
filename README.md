@@ -1,2 +1,3 @@
-# gr-analysis
-This repository contains a small tool that analyzes the quality of GR long distance hiking trails in Belgium. It uses topography information obtained from Open Street Maps through the OSMNX library and performs data analysis. It mainly focused on determining which trail sections are paved vs. unpaved, and how those are distributed geographically.
+# Project description
+## Long-distance hiking trails in Flanders
+Grote Routepaden (abbreviated GR) is a Flemish nonprofit that manages long-distance hiking routes in Flanders (Belgium). Their website currently lists 28 such routes that range from 30 km to 500 km in length, which can be found [here](https://www.groteroutepaden.be/nl/wandelroutes) together with GPX coordinates for each route.
