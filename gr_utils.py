@@ -144,7 +144,7 @@ def get_gpx(trailname):
             raise ValueError(f'The GPX file <{filename_gpx}> was not found! Please make sure it exists.')
         else: # The GPX file exists, so convert it into a clean CSV file
             print(f'Converting GPX file <{filename_gpx}> into cleaned CSV file <{filename_csv}>...')
-            gr_utils.process_gpx(filename_gpx,filename_csv)
+            process_gpx(filename_gpx,filename_csv)
             print('Completed conversion.')
     print(f'Loading trail points from <{filename_gpx}>...')
     trail = pd.read_csv(filename_csv) # Now read the cleaned CSV file into a DataFrame (latitude, longitude, elevation)

@@ -23,7 +23,7 @@ def get_coords_from_frame(data_roads):
     xy0 = list(zip(x,y))
     return [[coord[0],coord[1]] for coord in xy0]
 
-def compare_tracks(trail_coords,data_roads):
+def compare_tracks(trailname,trail_coords,data_roads):
     
     # Map setup
     mid = int(len(trail_coords)/2)
@@ -39,12 +39,12 @@ def compare_tracks(trail_coords,data_roads):
     newline.add_to(chart)
     
     # Render the map
-    filepath = "cache/chart_tracks.html"
+    filepath = f"cache/{trailname}_tracks.html"
     chart.save(filepath)
     
     return filepath
 
-def show_repeats(trail_coords,data_roads,repeat_coords):
+def show_repeats(trailname,trail_coords,data_roads,repeat_coords):
     
     # Map setup
     mid = int(len(trail_coords)/2)
@@ -65,13 +65,13 @@ def show_repeats(trail_coords,data_roads,repeat_coords):
         newmarker.add_to(chart)
     
     # Render the map
-    filepath = "cache/chart_repeat.html"
+    filepath = f"cache/{trailname}_repeat.html"
     chart.save(filepath)
     
     return filepath
 
 # Show the development status of data frame
-def show_development(data_places,focus):
+def show_development(trailname,data_places,focus):
     
     # Prepare data to be plotted
     colors = data_places['development'].values.tolist()
@@ -93,11 +93,11 @@ def show_development(data_places,focus):
     newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_development.html"
+    filepath = f"cache/{trailname}_development.html"
     chart.save(filepath)
     return filepath
 
-def show_traffic(data_places,focus):
+def show_traffic(trailname,data_places,focus):
     
     # Prepare data to be plotted
     colors = data_places['traffic'].values.tolist()
@@ -119,11 +119,11 @@ def show_traffic(data_places,focus):
     newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_traffic.html"
+    filepath = f"cache/{trailname}_traffic.html"
     chart.save(filepath)
     return filepath
 
-def show_paved(data_places,focus):
+def show_paved(trailname,data_places,focus):
     
     # Prepare data to be plotted
     colors = data_places['paved'].values.tolist()
@@ -145,11 +145,11 @@ def show_paved(data_places,focus):
     newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_paved.html"
+    filepath = f"cache/{trailname}_paved.html"
     chart.save(filepath)
     return filepath
 
-def show_paved_detail(data,focus):
+def show_paved_detail(trailname,data,focus):
 
     # Map setup
     chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
@@ -170,7 +170,7 @@ def show_paved_detail(data,focus):
         newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_detail.html"
+    filepath = f"cache/{trailname}_paved_detail.html"
     chart.save(filepath)
     return filepath
 
@@ -180,7 +180,7 @@ def get_focus(trail):
     mid = int(np.round(len(trail_coords)/2))
     return trail_coords[mid]
 
-def show_type_detail(data,focus):
+def show_type_detail(trailname,data,focus):
 
     # Map setup
     chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
@@ -204,12 +204,10 @@ def show_type_detail(data,focus):
 
         # Determine label based on highway/surface/tracktype
         label = f"Type {data.loc[i,'gr_type']} with hwy:{data.loc[i,'highway']} // srf:{data.loc[i,'surface']} // trk:{data.loc[i,'tracktype']} // trf:{data.loc[i,'traffic']} // dev:{data.loc[i,'development']}"
-#         label = f"Segment {i} // highway:{data.loc[i,'highway']} // surface:{data.loc[i,'surface']} // tracktype:{data.loc[i,'tracktype']} // traffic:{data.loc[i,'traffic']} // development:{data.loc[i,'development']}"
-#         label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
         newline.add_to(chart)
         
     # Render the map
-    filepath = "cache/chart_type.html"
+    filepath = f"cache/{trailname}_type_detail.html"
     chart.save(filepath)
     return filepath
