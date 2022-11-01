@@ -24,7 +24,7 @@ def get_places(bbox):
     # Downloading places information
     tags = {"landuse": ['commercial','construction','education','industrial',
                         'residential','retail','institutional','farmyard','cemetery',
-                        'garages','railway','landfill','brownfield','quarry'],
+                        'garages','railway','landfill','brownfield','quarry','military'],
             "admin_level": True
            }
     places = ox.geometries_from_polygon(bbox, tags)
@@ -59,7 +59,7 @@ def get_all_places(bbox):
     # Return places
     return places_landuse
 
-def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
+def get_place_info(data_section, places_landuse_merged, places_admin8, places_admin9):
     
     d_vec = []
     city8_vec = []
@@ -73,8 +73,8 @@ def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
         
         # Calculating distance to development
         d = 999.9;
-        for j, place in places_landuse.iterrows():
-            new_d = 1000*place['geometry'].distance(point) # Calculate distance midpoint - polygon
+        for place in places_landuse_merged:
+            new_d = 1000*place.distance(point) # Calculate distance midpoint - polygon
             d = min(d, new_d)
         d_vec.append(d)
    
@@ -96,21 +96,48 @@ def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
     
     return d_vec, city8_vec, city9_vec
 
-def add_places(data_roads, delta, n1, n2):
+def merge_landuse_places(places_landuse, buffersize, tol_area):
+    
+    polys = []
+    
+    for i in range(places_landuse.shape[0]):
+        poly = places_landuse.iloc[i]['geometry'] # Grab polygon
+        poly = poly.buffer(buffersize) # Buffer it
+        polys.append(poly)
+    merged_polys = list(shapely.ops.unary_union(polys))
+        
+    large_polys = []
+    for poly in merged_polys:
+#         print(f'This poly as an area of {poly.area} vs. tol area of {tol_area}')
+        if poly.area>tol_area:
+            large_polys.append(poly)
+#             print('Including it')
+#         else:
+#             print('Excluding it')
+            
+        
+    return large_polys
+
+def add_places(data_roads, delta, buffersize, tol_area, n1, n2):
 
     # Collect place data from OSM
     bbox = get_bbox(data_roads.loc[n1:n2], delta) # Polygon of bounding box around section
     places_landuse, places_admin8, places_admin9 = get_places(bbox) # Grab relevant place information
+#     print(f'There are {places_landuse.shape[0]} uncorrected landuse places')
+    
+    # Merge landuse places into larger polys
+    places_landuse_merged = merge_landuse_places(places_landuse, buffersize, tol_area)
+#     print(f'There are {len(places_landuse_merged)} corrected landuse places')
     
     # Get development distance & city names
-    d_vec, city8_vec, city9_vec = get_place_info(data_roads.loc[n1:n2], places_landuse, places_admin8, places_admin9)
+    d_vec, city8_vec, city9_vec = get_place_info(data_roads.loc[n1:n2], places_landuse_merged, places_admin8, places_admin9)
     data_roads.loc[n1:n2,'dev_dist'] = d_vec
     data_roads.loc[n1:n2,'city8'] = city8_vec
     data_roads.loc[n1:n2,'city9'] = city9_vec
     
     return data_roads
 
-def roads2places(trailname,data_roads,points_per_batch_places, delta_places):
+def roads2places(trailname,data_roads,points_per_batch_places, delta_places, buffersize, tol_area):
     
     ## Matching GPX track to OSM places (uses _osm_place_download under the hood)
     n_roads = len(data_roads) # Number of segments in data_roads
@@ -134,77 +161,6 @@ def roads2places(trailname,data_roads,points_per_batch_places, delta_places):
             print('   This batch was processed before, skipping.')
         
         else: # It does not exist, so process it (use loc to avoid selection error)
-            data_roads = add_places(data_roads, delta_places, n1, n2)
+            data_roads = add_places(data_roads, delta_places, buffersize, tol_area, n1, n2)
             gr_utils.write_batch_places(batch_out, data_roads.loc[n1:n2])
             print('   Finished this batch.')
-            
-
-# def get_development_distance(data_roads_section, places):
-    
-#     # Test matching
-#     k = 0 # Counter
-#     dvec = []
-#     for i, segment in data_roads_section.iterrows():
-#         dvec.append(999.9)
-#         xmid = (segment['x0'] + segment['x1'])/2
-#         ymid = (segment['y0'] + segment['y1'])/2
-#         point = shapely.geometry.Point(ymid,xmid) # We work with the midpoint of the segment
-#         for j, place in places.iterrows():
-#             d = 1000*place['geometry'].distance(point) # Calculate distance midpoint - polygon
-#             dvec[k] = min(d,dvec[k])
-#         k += 1 # Increase counter
-                
-#     return dvec
-
-# def get_city_names(data_section, places_admin8, places_admin9):
-    
-#     city8 = []
-#     city9 = []
-    
-#     # Looping over segments
-#     for idx, row in data_section.iterrows():
-
-#         xmid = (row['x0'] + row['x1'])/2
-#         ymid = (row['y0'] + row['y1'])/2
-#         point = shapely.geometry.Point(ymid,xmid) # Segment midpoint
-        
-#         # Check if the segment midpoint lies in any admin level 8 regions
-#         this_city8 = ''
-#         for j, place in places_admin8.iterrows():
-#             if point.within(place['geometry']):
-#                 this_city8 = place['name']
-#                 break
-#         city8.append(this_city8)
-                
-#         # Check if the segment midpoint lies in any admin level 9 regions
-#         this_city9 = ''
-#         for j, place in places_admin9.iterrows():
-#             if point.within(place['geometry']):
-#                 this_city9 = place['name']
-#                 break
-#         city9.append(this_city9)
-    
-#     return city8, city9
-
-# def add_place_info(data_roads, delta, n1, n2):
-
-#     # Collect place data from OSM
-#     bbox = get_bbox(data_roads.loc[n1:n2], delta) # Polygon of bounding box around section
-#     places_landuse, places_admin8, places_admin9 = get_places(bbox) # Grab relevant place information
-    
-#     # Get development distance & city names
-#     d_vec, city8_vec, city9_vec = get_place_info(data_roads.loc[n1:n2], places_landuse, places_admin8, places_admin9)
-#     data_roads.loc[n1:n2,'dev_dist'] = d_vec
-#     data_roads.loc[n1:n2,'city8'] = city8_vec
-#     data_roads.loc[n1:n2,'city9'] = city9_vec
-    
-#     # Calculate distance to nearest developed area
-# #     data_roads.loc[n1:n2,'dev_dist'] = get_development_distance(data_roads.loc[n1:n2], places_landuse)
-    
-#     # Grab city names
-# #     city8, city9 = get_city_names(data_roads.loc[n1:n2], places_admin8, places_admin9)
-# #     data_roads.loc[n1:n2,'city8'] = city8
-# #     data_roads.loc[n1:n2,'city9'] = city9
-    
-#     return data_roads
-        

@@ -203,7 +203,8 @@ def show_type_detail(trailname,data,focus):
             c = 'yellow'
 
         # Determine label based on highway/surface/tracktype
-        label = f"Type {data.loc[i,'gr_type']} with hwy:{data.loc[i,'highway']} // srf:{data.loc[i,'surface']} // trk:{data.loc[i,'tracktype']} // trf:{data.loc[i,'traffic']} // dev:{data.loc[i,'development']}"
+#         label = f"Type {data.loc[i,'gr_type']} with hwy:{data.loc[i,'highway']} // srf:{data.loc[i,'surface']} // trk:{data.loc[i,'tracktype']} // trf:{data.loc[i,'traffic']} // dev:{data.loc[i,'development']}"
+        label = f"Type {data.loc[i,'gr_type']} with pav:{data.loc[i,'paved']} // trf:{data.loc[i,'traffic']} // dev:{data.loc[i,'development']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
         newline.add_to(chart)
         
