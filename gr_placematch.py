@@ -44,6 +44,21 @@ def get_places(bbox):
     # Return places
     return places_landuse, places_admin8, places_admin9
 
+def get_all_places(bbox):
+    
+    # Downloading places information
+    tags = {"landuse": True}
+    places = ox.geometries_from_polygon(bbox, tags)
+    
+    # Filtering places with landuse that have a polygon or multipolygon
+    mask_landuse = places['landuse'].notna()
+    places_landuse_raw = places[mask_landuse]
+    mask_polygon = (places_landuse_raw.apply(is_polygon, axis=1))==True
+    places_landuse = places_landuse_raw[mask_polygon] 
+
+    # Return places
+    return places_landuse
+
 def get_place_info(data_section, places_landuse, places_admin8, places_admin9):
     
     d_vec = []
