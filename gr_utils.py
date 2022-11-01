@@ -32,7 +32,8 @@ def process_gpx(filename_in, filename_out):
         raw = file.read()
 
     # Use Regex to grab all lat/lon pairs
-    pattern = re.compile(r'lat="(?P<lat>\d+.\d+)" lon="(?P<lon>\d+.\d+)">\n\s+<ele>(?P<ele>\d+)<')
+#     pattern = re.compile(r'lat="(?P<lat>\d+.\d+)" lon="(?P<lon>\d+.\d+)">\n\s+<ele>(?P<ele>\d+)<') # did not account for negative elevations
+    pattern = re.compile(r'<trkpt lat="(?P<lat>\d+.\d+)" lon="(?P<lon>\d+.\d+)">\n\s+<ele>(?P<ele>(?:-?\d+)?)</ele>')
     dat = pattern.findall(raw)
 
     # Write the lat/lon pairs to a CSV file
