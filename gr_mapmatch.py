@@ -117,6 +117,29 @@ def get_shortest_route(network, node_id_start, node_id_end):
         return route1
     else:
         return route2[::-1] # We flip route2 because it runs opposite to the GPX track
+    
+# Calculates shortest route between two nodes of the network
+def get_shortest_route_new(network, node_id_start, node_id_end):
+    
+    print(f'Calculating route between nodes {node_id_start} and {node_id_end}')
+    # Calculating the routes in both directions
+    node_start   = network['points'].loc[node_id_start] # Start node with relevant information
+    node_end     = network['points'].loc[node_id_end]   # End node with relevant information
+    vertex_start = [node_start['y'], node_start['x']] # Coordinates of start node
+    vertex_end   = [node_end['y'],   node_end['x']]   # Coordinates of end node
+    route1 = ox.shortest_path(network['graph'], node_id_start, node_id_end) # Route from node_start -> node_end
+    route2 = ox.shortest_path(network['graph'], node_id_end, node_id_start) # Route from node_end -> node_start
+    route3 = ox.k_shortest_paths(network['graph'], node_id_start, node_id_end, 2) # TODO: REMOVE
+    paths = []
+    for path in route3:
+        paths.append(path)
+    print(f'I calculated {len(paths)} paths')
+
+    # Select the direction that results in the shortest path (we do this to deal with one-way streets)
+    if len(route1)<len(route2):
+        return route1
+    else:
+        return route2[::-1] # We flip route2 because it runs opposite to the GPX track
 
 def get_segments(network, node_id_start, node_id_end):
     
@@ -166,7 +189,8 @@ def match_roads(network,trail_coords):
     k = 0 # Iteration counter
     node_list_raw = [] # Will contain the nodes between which pathfinding should take place
     for trail_point in trail_coords:
-        print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
+#         print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
+        print(f'   Handling GPX point {k} of {len(trail_coords)-1}...')
         nearest_edge = ox.distance.nearest_edges(network['graph'],
                                                  trail_point[1],
                                                  trail_point[0]) # ID of the edge that trail_point is closest to
@@ -181,7 +205,8 @@ def match_roads(network,trail_coords):
     # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
     route_list_raw = [] # Contains IDs of all nodes that make up the shortest route between the nodes in node_list
     for i in range(0,len(node_list)-1):
-        print_overwrite(f'\r   Handling node_list pair {i} of {len(node_list)-2}...')
+#         print_overwrite(f'\r   Handling node_list pair {i} of {len(node_list)-2}...')
+        print(f'   Handling node_list pair {i} of {len(node_list)-2}...')
         route_list_raw.extend(get_shortest_route(network, node_list[i], node_list[i+1]))
     print('')
     route_list = remove_successive_duplicates(route_list_raw)
@@ -190,12 +215,52 @@ def match_roads(network,trail_coords):
     segment_list = [] # Contains OSM edge segments that were matched to GPX track
     # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
     for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
-        print_overwrite(f'\r   Handling route_list pair {i} of {len(route_list)-2}...')
+#         print_overwrite(f'\r   Handling route_list pair {i} of {len(route_list)-2}...')
+        print(f'   Handling route_list pair {i} of {len(route_list)-2}...')
         segment_list.extend(get_segments(network, route_list[i], route_list[i+1]))
 #         print(f'Length of appended segment_list: {len(segment_list)}')
     print('')
     
     return segment_list
+
+def match_roads_details(network,trail_coords):
+    warnings.filterwarnings("ignore", category=UserWarning) # TODO: Figure out projection issue so this warning is not thrown
+    
+    # --- MAPPING GPX POINT TO EDGE ENDS --- #
+    k = 0 # Iteration counter
+    node_list_raw = [] # Will contain the nodes between which pathfinding should take place
+    for trail_point in trail_coords:
+        print(f'   Handling GPX point {k} of {len(trail_coords)-1}...')
+        nearest_edge = ox.distance.nearest_edges(network['graph'],
+                                                 trail_point[1],
+                                                 trail_point[0]) # ID of the edge that trail_point is closest to
+        nearest_edge_end = get_nearest_edge_end(network,
+                                                nearest_edge,
+                                                trail_point) # ID of the edge end node that trail_point is closest to
+        node_list_raw.append(nearest_edge_end) # Add it to the list
+        k += 1 # Increment iteration counter
+    print('')
+    node_list = remove_successive_duplicates(node_list_raw) # Because # trail_point may map to the same nearest_edge_end
+    
+#     return node_list_raw
+    
+    # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
+    route_list_raw = [] # Contains IDs of all nodes that make up the shortest route between the nodes in node_list
+    for i in range(0,len(node_list)-1):
+        print(f'   Handling node_list pair {i} of {len(node_list)-2}...')
+        route_list_raw.extend(get_shortest_route_new(network, node_list[i], node_list[i+1]))
+    print('')
+    route_list = remove_successive_duplicates(route_list_raw)
+    
+    # --- EXTRACT SEGMENTS FROM THE LIST OF TRAVELED NODES --- #
+    segment_list = [] # Contains OSM edge segments that were matched to GPX track
+    # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
+    for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
+        print(f'   Handling route_list pair {i} of {len(route_list)-2}...')
+        segment_list.extend(get_segments(network, route_list[i], route_list[i+1]))
+    print('')
+    
+    return segment_list, node_list, node_list_raw, route_list, route_list_raw
 
 def match_batch(trail_section, trail_coords, delta):
     
