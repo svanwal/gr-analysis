@@ -223,7 +223,7 @@ def match_roads(network,trail_coords):
     
     return segment_list
 
-def match_roads_details(network,trail_coords):
+def match_nodes(network,trail_coords):
     warnings.filterwarnings("ignore", category=UserWarning) # TODO: Figure out projection issue so this warning is not thrown
     
     # --- MAPPING GPX POINT TO EDGE ENDS --- #
@@ -240,27 +240,28 @@ def match_roads_details(network,trail_coords):
         node_list_raw.append(nearest_edge_end) # Add it to the list
         k += 1 # Increment iteration counter
     print('')
-    node_list = remove_successive_duplicates(node_list_raw) # Because # trail_point may map to the same nearest_edge_end
     
-#     return node_list_raw
+    return node_list_raw
     
-    # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
-    route_list_raw = [] # Contains IDs of all nodes that make up the shortest route between the nodes in node_list
-    for i in range(0,len(node_list)-1):
-        print(f'   Handling node_list pair {i} of {len(node_list)-2}...')
-        route_list_raw.extend(get_shortest_route_new(network, node_list[i], node_list[i+1]))
-    print('')
-    route_list = remove_successive_duplicates(route_list_raw)
+#     node_list = remove_successive_duplicates(node_list_raw) # Because # trail_point may map to the same nearest_edge_end
     
-    # --- EXTRACT SEGMENTS FROM THE LIST OF TRAVELED NODES --- #
-    segment_list = [] # Contains OSM edge segments that were matched to GPX track
-    # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
-    for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
-        print(f'   Handling route_list pair {i} of {len(route_list)-2}...')
-        segment_list.extend(get_segments(network, route_list[i], route_list[i+1]))
-    print('')
+#     # --- PERFORM PATHFINDING BETWEEN THE NODES IN NODE_LIST --- #
+#     route_list_raw = [] # Contains IDs of all nodes that make up the shortest route between the nodes in node_list
+#     for i in range(0,len(node_list)-1):
+#         print(f'   Handling node_list pair {i} of {len(node_list)-2}...')
+#         route_list_raw.extend(get_shortest_route_new(network, node_list[i], node_list[i+1]))
+#     print('')
+#     route_list = remove_successive_duplicates(route_list_raw)
     
-    return segment_list, node_list, node_list_raw, route_list, route_list_raw
+#     # --- EXTRACT SEGMENTS FROM THE LIST OF TRAVELED NODES --- #
+#     segment_list = [] # Contains OSM edge segments that were matched to GPX track
+#     # Format is [x0 y0 x1 y1 d dcum highway surface tracktype]
+#     for i in range(0,len(route_list)-1): # Loop over all pairs in the route_list
+#         print(f'   Handling route_list pair {i} of {len(route_list)-2}...')
+#         segment_list.extend(get_segments(network, route_list[i], route_list[i+1]))
+#     print('')
+    
+#     return segment_list, node_list, node_list_raw, route_list, route_list_raw
 
 def match_batch(trail_section, trail_coords, delta):
     
