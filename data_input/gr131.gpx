@@ -394,7 +394,7 @@ Dan is het nog een kleine stap naar het Provinciedomein De Palingbeek in Zillebe
       <trkpt lat="51.2418" lon="3.37042">
         <ele>3</ele>
       </trkpt>
-      <trkpt lat="51.2414" lon="3.37093">
+      <trkpt lat="51.2414" lon="3.37093"> point X
         <ele>2</ele>
       </trkpt>
       <trkpt lat="51.24015" lon="3.37226">
@@ -412,7 +412,7 @@ Dan is het nog een kleine stap naar het Provinciedomein De Palingbeek in Zillebe
       <trkpt lat="51.23641" lon="3.3774">
         <ele>-1</ele>
       </trkpt>
-      <trkpt lat="51.23528" lon="3.37908">
+      <trkpt lat="51.23528" lon="3.37908"> point Y
         <ele>0</ele>
       </trkpt>
       <trkpt lat="51.23519" lon="3.37925">
@@ -4726,7 +4726,7 @@ Dan is het nog een kleine stap naar het Provinciedomein De Palingbeek in Zillebe
       <trkpt lat="50.9991" lon="2.80028">
         <ele>1</ele>
       </trkpt>
-      <trkpt lat="50.99904" lon="2.80054">
+      <trkpt lat="50.99904" lon="2.80054"> point -1
         <ele>1</ele>
       </trkpt>
       <trkpt lat="50.99817" lon="2.80155">
@@ -4771,10 +4771,10 @@ Dan is het nog een kleine stap naar het Provinciedomein De Palingbeek in Zillebe
       <trkpt lat="50.99289" lon="2.80546">
         <ele>-1</ele>
       </trkpt>
-      <trkpt lat="50.99238" lon="2.80559">
+      <trkpt lat="50.99238" lon="2.80559"> point 0
         <ele>0</ele>
       </trkpt>
-      <trkpt lat="50.99202" lon="2.80566">
+      <trkpt lat="50.99202" lon="2.80566"> point 1
         <ele>0</ele>
       </trkpt>
       <trkpt lat="50.99206" lon="2.80709">
@@ -4942,7 +4942,7 @@ Dan is het nog een kleine stap naar het Provinciedomein De Palingbeek in Zillebe
       <trkpt lat="50.98468" lon="2.81717">
         <ele>0</ele>
       </trkpt>
-      <trkpt lat="50.98504" lon="2.81737">
+      <trkpt lat="50.98504" lon="2.81737"> point 2
         <ele>0</ele>
       </trkpt>
       <trkpt lat="50.9854" lon="2.81771">

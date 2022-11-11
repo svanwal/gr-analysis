@@ -231,12 +231,38 @@ def match_nodes(network,trail_coords):
     node_list_raw = [] # Will contain the nodes between which pathfinding should take place
     for trail_point in trail_coords:
         print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
+#         print(f'Handling GPX point {k} of {len(trail_coords)-1} with coords {trail_point}')
         nearest_edge = ox.distance.nearest_edges(network['graph'],
                                                  trail_point[1],
                                                  trail_point[0]) # ID of the edge that trail_point is closest to
+        
+#         print(f'Nearest edge is {nearest_edge}')
+        
         nearest_edge_end = get_nearest_edge_end(network,
                                                 nearest_edge,
                                                 trail_point) # ID of the edge end node that trail_point is closest to
+        node_list_raw.append(nearest_edge_end) # Add it to the list
+        k += 1 # Increment iteration counter
+    print('')
+    
+    return node_list_raw
+
+def match_nodes_vec(network,trail_coords):
+    warnings.filterwarnings("ignore", category=UserWarning) # TODO: Figure out projection issue so this warning is not thrown
+    
+    # --- MAPPING GPX POINT TO EDGE ENDS --- #
+    k = 0 # Iteration counter
+    node_list_raw = [] # Will contain the nodes between which pathfinding should take place
+    
+    first = [point[1] for point in trail_coords]
+    second = [point[0] for point in trail_coords]
+    nearest_edges = ox.distance.nearest_edges(network['graph'],first,second)
+    
+    for j in range(len(trail_coords)):
+        print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
+        nearest_edge_end = get_nearest_edge_end(network,
+                                                nearest_edges[j],
+                                                trail_coords[j]) # ID of the edge end node that trail_point is closest to
         node_list_raw.append(nearest_edge_end) # Add it to the list
         k += 1 # Increment iteration counter
     print('')
@@ -300,3 +326,44 @@ def trail2roads(trailname, trail, points_per_batch, delta):
             gr_utils.write_batch(batch_out, segment_list)
             print('   Finished this batch.')
             print('')
+            
+def get_dist(X,Y):
+    r = [X[0] - Y[0],
+         X[1] - Y[1]]
+    return np.sqrt(r[0]*r[0] + r[1]*r[1])
+
+def get_p2seg_distance(P,P0,P1):
+    v = [P1[0] - P0[0],
+         P1[1] - P0[1]]
+    w = [P[0] - P0[0],
+         P[1] - P0[1]]
+    c1 = w[0]*v[0] + w[1]*v[1]
+    if c1<=0:
+        return get_dist(P,P0)
+    c2 = v[0]*v[0] + v[1]*v[1]
+    if c2<=c1:
+        return get_dist(P,P1)
+    b = c1/c2
+    Pb = [P0[0] + b*v[0],
+          P0[1] + b*v[1]]
+    return get_dist(P,Pb)
+
+def get_coords_from_route(route):
+    
+    # route is a list of [51.2780788,4.051181,51.2781197,4.0511689,4.625675490697481,5.734,'residential',nan,nan]
+    xy = []
+    for segment in route:
+        xy.append([segment[0],segment[1]])
+    segment = route[-1]
+    xy.append([segment[2],segment[3]]) # adding the last point
+    return xy
+
+def get_path_error(route,trail_coords):
+    xy = get_coords_from_route(route)
+    err = 0
+    for point in trail_coords: # for each point from the gpx
+        dmin = 999
+        for j in range(len(xy)-1): # find the min distance to the pathfind
+            dmin = min(dmin,get_p2seg_distance(point,xy[j],xy[j+1]))
+        err += dmin*dmin # save the squared error
+    return err
