@@ -280,8 +280,11 @@ def pieces_to_segments(trail,nodes,points_per_batch,delta_roads,pieces,npaths):
                 for path in route:
                     paths.append(path)
             except:
-                print('')
+#                 print('')
                 print('   Node not found in network, downloading larger network...')
+#                 print(f"nodes are {row['node0']} and {row['node1']}")
+#                 print(f'first has coords {} {}')
+#                 print(f'bbox used was {lat_min} {lat_max} {lon_min} {lon_max}')
                 lat_min, lat_max, lon_min, lon_max = gr_mapmatch.get_bbox(trail.loc[n1:n2],ntry*delta_roads) # Calculate the bounding box
                 network = gr_mapmatch.get_osm_network(lat_min, lat_max, lon_min, lon_max) # Download the street network from OSM
                 ntry += 1

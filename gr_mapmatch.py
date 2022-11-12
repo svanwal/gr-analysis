@@ -35,8 +35,10 @@ def get_osm_network(lat_min, lat_max, lon_min, lon_max):
     
     # Download the street network based on bounding box
 #     print('   Downloading street network...')
+#     graph = ox.graph_from_bbox(lat_max, lat_min, lon_max, lon_min,
+#                                network_type="all_private", clean_periphery=False)
     graph = ox.graph_from_bbox(lat_max, lat_min, lon_max, lon_min,
-                               network_type="all_private", clean_periphery=False)
+                               network_type="all_private", clean_periphery=True)
     
     # Processing the street network
 #     print('   Processing street network...')
