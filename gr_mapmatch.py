@@ -34,12 +34,12 @@ def get_bbox(coords, delta):
 def get_osm_network(lat_min, lat_max, lon_min, lon_max):
     
     # Download the street network based on bounding box
-    print('   Downloading street network...')
+#     print('   Downloading street network...')
     graph = ox.graph_from_bbox(lat_max, lat_min, lon_max, lon_min,
                                network_type="all_private", clean_periphery=False)
     
     # Processing the street network
-    print('   Processing street network...')
+#     print('   Processing street network...')
     points, edges = ox.graph_to_gdfs(graph) # Convert the street network
     points.sort_index(inplace=True) # Sort the nodes for faster selections with .loc
     edges.sort_index(inplace=True) # Sort the edges for faster selections with .loc
