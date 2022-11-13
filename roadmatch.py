@@ -102,12 +102,34 @@ def edge_to_coords(network_edges,edge_id):
     edge_coords = list(zip(lon,lat))
     return [[coord[1],coord[0]] for coord in edge_coords]
 
+def point2rectangle(rect, P):
+    Px = P[1]
+    Py = P[0]
+    dx = max(rect['xmin'] - Px, 0, Px - rect['xmax'])
+    dy = max(rect['ymin'] - Py, 0, Py - rect['ymax'])
+    print(dx)
+    print(dy)
+    return np.sqrt(dx*dx + dy*dy)
+
+def get_point_to_bbox_distance(point_x,point_y,bbox):
+
+    d0 = get_p2seg_distance([point_y,point_x],bbox[0],bbox[1])
+    d1 = get_p2seg_distance([point_y,point_x],bbox[1],bbox[2])
+    d2 = get_p2seg_distance([point_y,point_x],bbox[2],bbox[3])
+    d3 = get_p2seg_distance([point_y,point_x],bbox[3],bbox[0])
+    return min(d0,d1,d2,d3)
+
+def get_bbox(lat_min, lat_max, lon_min, lon_max):
+    
+    return [[lat_min,lon_min],[lat_min,lon_max],[lat_max,lon_max],[lat_max,lon_min],[lat_min,lon_min]]
+
+
 #####################################
 ## --- Road matching functions --- ##
 #####################################
 
 # Converts gpx points to nodes dataframe
-def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads):
+def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads, min_dist_from_bbox):
 
     n_trail = len(gpx) # Number of GPX points in the trail
     n_batch = int(np.ceil(gpx.shape[0]/points_per_batch)) # Number of batches to be run
@@ -128,7 +150,11 @@ def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads):
         lat_min, lat_max, lon_min, lon_max = gr_mapmatch.get_bbox(gpx_section,delta_roads) # Calculate the bounding box
         network = gr_mapmatch.get_osm_network(lat_min, lat_max, lon_min, lon_max) # Download the street network from OSM
         new_nodes = gr_mapmatch.match_nodes_vec(network,section_coords) # Calculate corresponding node for each GPX point
+        bbox = get_bbox(lat_min, lat_max, lon_min, lon_max) 
 
+        delta_lat = lat_max - lat_min
+        delta_lon = lon_max - lon_min
+        
         # Calculate distance between each GPX point and its corresponding node, in this batch
         dvec = []
         for j in range(len(section_coords)):
@@ -139,12 +165,63 @@ def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads):
             node = network['points'].loc[node_id]
             node_x = node['x']
             node_y = node['y']
+            # Distance from GPX point to node
             d2node = gr_mapmatch.get_dist(section_coords[j],[node_y,node_x]) # distance from gpx point to matching node
+            # Distance from node to bbox
+            d2bbox = get_point_to_bbox_distance(node_x,node_y,bbox)
+            # Storing
             newrow = pd.DataFrame({'point_x':point_x, 'point_y':point_y,
                                    'node_id':node_id,
                                    'node_x':node_x, 'node_y':node_y,
-                                   'd2node':d2node},index={point_id})
+                                   'd2node':d2node, 'd2bbox':d2bbox},index={point_id})
             nodes = pd.concat([nodes,newrow])
+            
+        # If we find any matched nodes that are close to the bounding box, recalculate with a bigger network!
+        for idx, row in nodes.iterrows():
+        
+            if row['d2bbox']<min_dist_from_bbox:
+
+                print(f'Point {idx} should be recalculated!')
+                found = False
+
+                # Now we need a while loop that checks a larger network around this point
+                k = 0 # Counter for how many times we increased the bbox
+                new_lat_min = row['point_y'] - delta_lat/2
+                new_lat_max = row['point_y'] + delta_lat/2
+                new_lon_min = row['point_x'] - delta_lon/2
+                new_lon_max = row['point_x'] + delta_lon/2
+
+                while not found:
+                    
+                    print(f'Recalculating with larger bbox, k = {k}')
+                    
+                    # Updating the bounding box using counter k
+                    temp_lat_min = new_lat_min - k*delta_roads
+                    temp_lat_max = new_lat_max + k*delta_roads
+                    temp_lon_min = new_lon_min - k*delta_roads
+                    temp_lon_max = new_lon_max + k*delta_roads
+                    
+                    # New node matching
+                    new_network = gr_mapmatch.get_osm_network(temp_lat_min, temp_lat_max, temp_lon_min, temp_lon_max)
+                    nearest_edges = ox.distance.nearest_edges(new_network['graph'],row['point_x'],row['point_y'])
+                    nearest_edge_end = gr_mapmatch.get_nearest_edge_end(
+                        new_network,nearest_edges,[row['point_x'],row['point_y']]) # make sure the point coords are in nthe right order here!!!!!
+                    node_id = nearest_edge_end
+                    node = new_network['points'].loc[node_id]
+                    node_x = node['x']
+                    node_y = node['y']
+                    d2bbox = get_point_to_bbox_distance(node_x,node_y,bbox)
+                    if d2bbox>min_dist_from_bbox:
+                        d2node = gr_mapmatch.get_dist([row['point_y'],row['point_x']],
+                                                      [node_y,node_x]) # distance from gpx point to matching node
+                        nodes.loc[idx,'node_id'] = node_id
+                        nodes.loc[idx,'node_x'] = node_x
+                        nodes.loc[idx,'node_y'] = node_y
+                        nodes.loc[idx,'d2node'] = d2node
+                        nodes.loc[idx,'d2bbox'] = d2bbox
+                        break
+                    else:
+                        k += 1 # retry with a larger bbox
 
     return nodes
 
