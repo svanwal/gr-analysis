@@ -142,7 +142,7 @@ def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads, min_dist_from_b
         n1 = b*points_per_batch # First point of this batch
         n2 = min(n1 + points_per_batch, n_trail) # Last point of this batch (clipped)
 
-        print(f'Handling batch #{b}/{n_batch-1} spanning GPX points {n1} through {n2-1}')
+        print_overwrite(f"\rHandling batch #{b}/{n_batch-1} spanning GPX points {n1} through {n2-1}")
 
         gpx_section = gpx.loc[n1:n2] # Select that range of GPX points
         section_coords = gpx_coords[n1:n2] # Convert the points into a list of [lat, lon] pairs
@@ -201,6 +201,8 @@ def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads, min_dist_from_b
                     temp_lon_min = new_lon_min - k*delta_roads
                     temp_lon_max = new_lon_max + k*delta_roads
                     
+                    new_bbox = get_bbox(temp_lat_min, temp_lat_max, temp_lon_min, temp_lon_max) 
+                    
                     # New node matching
                     new_network = gr_mapmatch.get_osm_network(temp_lat_min, temp_lat_max, temp_lon_min, temp_lon_max)
                     nearest_edges = ox.distance.nearest_edges(new_network['graph'],row['point_x'],row['point_y'])
@@ -210,7 +212,8 @@ def gpx_to_nodes(gpx, gpx_coords, points_per_batch, delta_roads, min_dist_from_b
                     node = new_network['points'].loc[node_id]
                     node_x = node['x']
                     node_y = node['y']
-                    d2bbox = get_point_to_bbox_distance(node_x,node_y,bbox)
+                    d2bbox = get_point_to_bbox_distance(node_x,node_y,new_bbox)
+                    print(f'new distance is {d2bbox} but ')
                     if d2bbox>min_dist_from_bbox:
                         d2node = gr_mapmatch.get_dist([row['point_y'],row['point_x']],
                                                       [node_y,node_x]) # distance from gpx point to matching node
@@ -343,7 +346,7 @@ def pieces_to_segments(trail,nodes,points_per_batch,delta_roads,pieces,npaths):
         if row['gpx0']>n2:
             n1 += points_per_batch
             n2 += points_per_batch
-            print('')
+#             print('')
             lat_min, lat_max, lon_min, lon_max = gr_mapmatch.get_bbox(trail.loc[n1:n2],delta_roads) # Calculate the bounding box
             network = gr_mapmatch.get_osm_network(lat_min, lat_max, lon_min, lon_max) # Download the street network from OSM
 

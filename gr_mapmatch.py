@@ -259,7 +259,7 @@ def match_nodes_vec(network,trail_coords):
     nearest_edges = ox.distance.nearest_edges(network['graph'],first,second)
     
     for j in range(len(trail_coords)):
-        print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
+#         print_overwrite(f'\r   Handling GPX point {k} of {len(trail_coords)-1}...')
         nearest_edge_end = get_nearest_edge_end(network,
                                                 nearest_edges[j],
                                                 trail_coords[j]) # ID of the edge end node that trail_point is closest to

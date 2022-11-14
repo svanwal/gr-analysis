@@ -32,17 +32,17 @@ def compare_tracks(trailname,trail_coords,data_roads):
     # Draw GPX track
     newline = folium.PolyLine(locations=trail_coords, weight=3, color='red')
     newline.add_to(chart)
-    for point in trail_coords:
-        newmarker = folium.CircleMarker(location=point,radius=3,color='red')
-        newmarker.add_to(chart)
+#     for point in trail_coords:
+#         newmarker = folium.CircleMarker(location=point,radius=3,color='red')
+#         newmarker.add_to(chart)
     
     # Draw map matched frame
     xy = get_coords_from_frame(data_roads)
     newline = folium.PolyLine(locations=xy, weight=2, color='black')
     newline.add_to(chart)
-    for point in xy:
-        newmarker = folium.CircleMarker(location=point,radius=3,color='black')
-        newmarker.add_to(chart)
+#     for point in xy:
+#         newmarker = folium.CircleMarker(location=point,radius=3,color='black')
+#         newmarker.add_to(chart)
     
     # Render the map
     filepath = f"cache/{trailname}_tracks.html"
