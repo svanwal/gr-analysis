@@ -77,7 +77,7 @@ def show_repeats(trailname,trail_coords,data_roads,repeat_coords):
     return filepath
 
 # Show the development status of data frame
-def show_development(trailname,data_places,focus):
+def show_raw_development(trailname,data_places,devgroups,focus):
     
     # Prepare data to be plotted
     colors = data_places['development'].values.tolist()
@@ -94,12 +94,17 @@ def show_development(trailname,data_places,focus):
     # Map setup
     chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
 
-    # Draw development type
-    newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
-    newline.add_to(chart)
+    # Draw development type by group
+    for idx, group in devgroups.iterrows():
+        j0 = int(group['j0'])
+        j1 = int(group['j1'])
+        d = group['d']
+        newline = folium.ColorLine(positions=xy[j0:j1], colors=colors[j0:j1], colormap=colormap, weight=3, popup={d})
+#     newline = folium.ColorLine(positions=xy, colors=colors, colormap=colormap, weight=3, popup=colors)
+#     newline.add_to(chart)
         
     # Render the map
-    filepath = f"cache/{trailname}_development.html"
+    filepath = f"cache/{trailname}_development_raw.html"
     chart.save(filepath)
     return filepath
 

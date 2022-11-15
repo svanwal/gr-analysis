@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def get_development_type(data,tol_d):
     
@@ -7,6 +8,55 @@ def get_development_type(data,tol_d):
     data.loc[mask_undev,'development'] = 0  # 0 is undeveloped, 1 is developed
     
     return data
+
+def get_development_groups(data):
+    
+    devgroups = pd.DataFrame()
+    k = 0 # group counter
+    n = data.shape[0] # nrows in data
+    j0 = 0
+    j1 = j0
+
+    while j1<n-1:
+
+        dev0 = data.loc[j0]['development']
+        j1 = j0 + 1
+        dev1 = data.loc[j1]['development']
+
+        # increment j1 until we find a different development type
+        while dev1==dev0:
+            if j1 == n-1: # we have reached the end of the data dataframe
+                break
+            j1 += 1
+            dev1 = data.loc[j1]['development']
+            
+        # calculate distance of covered by this group
+        d = 0
+        for j in range(j0,j1+1):
+            row = data.loc[j]
+            d += row['d1'] - row['d0']
+            
+        # add to devgroups list
+        newrow = pd.DataFrame({'dev':dev0, 'j0':j0, 'j1':j1-1, 'd':d},index={k})
+        devgroups = pd.concat([devgroups,newrow])
+        k += 1
+
+        # move to the next devgroup by setting j0 = j1
+        j0 = j1
+    
+    return devgroups
+
+def smooth_development_type(data, tol_d):
+    
+    # First calculate cumulative distances
+    data = calculate_cumulative_distances(data)
+    
+    # Group the data into pieces with the same development status
+    groups = get_development_groups(data)
+    
+    return data
+    
+    
     
 def get_traffic_type(data,types_slow,types_heavy):
     
@@ -103,6 +153,9 @@ def places2processed(data,
     
     # Establish development status
     data = get_development_type(data,tol_d)
+    
+    # Smooth development status
+#     data['development_smooth'] = smooth_development_type(data,250.0)
     
     # Establish GR route type
     data = get_gr_type(data)
