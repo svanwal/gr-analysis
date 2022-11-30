@@ -134,6 +134,43 @@ def show_traffic(trailname,data_places,focus):
     chart.save(filepath)
     return filepath
 
+def show_traffic_detail(trailname,data,focus):
+    
+    # Prepare data to be plotted
+    colors = data['traffic'].values.tolist()
+    x = data['x0'].values.tolist()
+    y = data['y0'].values.tolist()
+    x.extend(data.tail(1)['x1'])
+    y.extend(data.tail(1)['y1'])
+    xy0 = list(zip(x,y))
+    xy = [[coord[0],coord[1]] for coord in xy0]
+    
+    # Colormap setup
+    colormap = cm.LinearColormap(colors=['#21ce2c','black','red'],vmin=0,vmax=2,index=[0,1,2])
+    
+    # Map setup
+    chart = folium.Map(location=focus, zoom_start=11, tiles="OpenStreetMap")
+
+    # Draw path
+    coords = get_fullcoords_from_frame(data)
+    for i in range(len(coords)-1):
+        # Determine color based on paved status
+        if data.loc[i,'traffic']==0:
+            c = '#21ce2c'
+        elif data.loc[i,'traffic']==1:
+            c = 'black'
+        else:
+            c = 'red'
+        # Determine label based on highway/surface/tracktype
+        label = f"highway:{data.loc[i,'highway']}"
+        newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
+        newline.add_to(chart)
+        
+    # Render the map
+    filepath = f"cache/{trailname}_traffic_detail.html"
+    chart.save(filepath)
+    return filepath
+
 def show_paved(trailname,data_places,focus):
     
     # Prepare data to be plotted
@@ -176,7 +213,8 @@ def show_paved_detail(trailname,data,focus):
         else:
             c = 'black'
         # Determine label based on highway/surface/tracktype
-        label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+#         label = f"{i}: {data.loc[i,'highway']} / {data.loc[i,'surface']} / {data.loc[i,'tracktype']}"
+        label = f"hwy:{data.loc[i,'highway']} / srf:{data.loc[i,'surface']} / trktyp:{data.loc[i,'tracktype']}"
         newline = folium.PolyLine(locations=coords[i:i+2], weight=3, color=c, popup=label)
         newline.add_to(chart)
         
